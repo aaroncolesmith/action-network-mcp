@@ -42,6 +42,9 @@ jobs:
           idx = json.load(open("site/odds/index.json"))
           counts = "; ".join(f"{k}: " + " ".join(str(f["games"]) for f in v["files"]) for k, v in idx["leagues"].items())
           print(f"::notice title=Games per day (from {idx['retrieved_at']})::{counts}")
+          for k in ("NFL", "NBA", "NHL", "MLB", "NCAAF"):
+              v = idx["leagues"][k]
+              print(f"::notice title=Detail {k}::raw={json.dumps(v['raw_games_by_fetch_date'])} excluded={json.dumps([f['excluded'] for f in v['files']])}")
           errs = {k: v["error"] for k, v in idx["leagues"].items() if v.get("error")}
           if errs:
               print("::warning title=League errors::" + json.dumps(errs).replace("\n", " "))

@@ -96,9 +96,12 @@ def collect_league(svc: OddsService, key: str, start_pt: date, horizon: int) -> 
     by_date: Dict[str, List[dict]] = {}
     seen = set()
     last_pt = start_pt + timedelta(days=horizon)
+    raw: Dict[str, str] = {}
     for i in range(horizon + 2):  # +1: late Pacific games fall on the next Eastern date
         day = start_pt + timedelta(days=i)
         games, _, _ = svc._scoreboard_games(key, day)
+        starts = sorted(g["start_time"][:10] for g in games if g["start_time"])
+        raw[day.isoformat()] = f"{len(games)}" + (f" [{starts[0]}..{starts[-1]}]" if starts else "")
         for g in games:
             if g["game_id"] in seen or not g["start_time"]:
                 continue
@@ -106,6 +109,8 @@ def collect_league(svc: OddsService, key: str, start_pt: date, horizon: int) -> 
             pt_day = datetime.fromisoformat(to_pacific(g["start_time"])).date()
             if start_pt <= pt_day <= last_pt:
                 by_date.setdefault(pt_day.isoformat(), []).append(g)
+    log.info("%s raw games by fetch date: %s", key, raw)
+    by_date["_raw"] = raw  # type: ignore[assignment]
     return by_date
 
 
@@ -178,13 +183,16 @@ def build(out_dir: str, labels: Optional[List[str]] = None, svc: Optional[OddsSe
         except (ActionNetworkError, ValueError) as exc:
             log.error("%s failed: %s", label, exc)
             by_date, error = {}, f"Could not retrieve {label} odds at this time: {exc}"
+        raw = by_date.pop("_raw", {})
         entries = []
         for day in days:
             body = league_file(label, key, day, by_date.get(day, []), retrieved, error)
             rel = f"odds/{label.lower()}/{day}.json"
             write_json(os.path.join(out_dir, rel), body)
-            entries.append({"date": day, "games": body["game_count"], "url": f"{base_url}{rel}"})
-        index["leagues"][label] = {"files": entries, **({"error": error} if error else {})}
+            entries.append({"date": day, "games": body["game_count"], "excluded": body["games_excluded"],
+                            "url": f"{base_url}{rel}"})
+        index["leagues"][label] = {"files": entries, "raw_games_by_fetch_date": raw,
+                                   **({"error": error} if error else {})}
         log.info("%s: %s", label, {e["date"]: e["games"] for e in entries})
 
     write_json(os.path.join(out_dir, "odds", "index.json"), index)

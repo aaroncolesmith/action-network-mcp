@@ -46,9 +46,8 @@ LEAGUES: Dict[str, dict] = {
 # Book ids requested on every scoreboard call (same set the archiver uses).
 DEFAULT_BOOK_IDS: List[int] = [15, 30, 68, 69, 71, 75, 76, 79, 123, 247, 972]
 
-# Best-effort names. 15 is inferred to be Action Network's consensus row (it is the
-# row that carries public-betting %); the rest are community mappings and should be
-# verified. Override with AN_BOOK_NAMES='{"68": "DraftKings", ...}'.
+# Names confirmed against Action Network's /books endpoint (Oct 2026). Most ids are the
+# NJ book. 76 was not listed there. Override with AN_BOOK_NAMES='{"68": "DraftKings"}'.
 BOOK_NAMES: Dict[int, str] = {
     15: "Consensus",
     30: "Open",
@@ -56,11 +55,11 @@ BOOK_NAMES: Dict[int, str] = {
     69: "FanDuel",
     71: "BetRivers",
     75: "BetMGM",
-    76: "PointsBet",
+    76: "book_76",
     79: "bet365",
     123: "Caesars",
-    247: "ESPN BET",
-    972: "Fanatics",
+    247: "Unibet",
+    972: "BetRivers NY",
 }
 if os.environ.get("AN_BOOK_NAMES"):
     BOOK_NAMES.update({int(k): v for k, v in json.loads(os.environ["AN_BOOK_NAMES"]).items()})
