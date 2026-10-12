@@ -1,0 +1,26 @@
+name: probe api
+
+# Developer tool: inspect raw Action Network responses. Results appear as run annotations.
+on:
+  workflow_dispatch:
+    inputs:
+      paths:
+        description: "Space-separated API paths, e.g. scoreboard/nfl?week=7"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install .
+      - env:
+          PATHS: ${{ inputs.paths }}
+        run: python -m action_network.probe --annotate $PATHS
