@@ -68,7 +68,7 @@ class HistoryStore:
         with self._lock:
             cur = self._conn.cursor()
             for game in (payload or {}).get("games") or []:
-                g = parse_game(game, league)
+                g = parse_game(game, game.get("league_name") or league)
                 for line in g["lines"]:
                     if line["book_id"] is None:
                         continue
@@ -85,7 +85,7 @@ class HistoryStore:
                     cur.execute(
                         f"INSERT INTO line_snapshots (game_id, league, book_id, observed_at, {', '.join(FIELDS)}) "
                         f"VALUES (?, ?, ?, ?, {', '.join('?' for _ in FIELDS)})",
-                        (g["game_id"], league, line["book_id"], ts, *[flat[f] for f in FIELDS]),
+                        (g["game_id"], g["league"], line["book_id"], ts, *[flat[f] for f in FIELDS]),
                     )
                     written += 1
             self._conn.commit()

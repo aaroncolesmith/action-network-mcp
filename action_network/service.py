@@ -69,15 +69,19 @@ class OddsService:
 
     # ---------------------------------------------------------- internals
     def _scoreboard_games(self, league: str, day: date_cls) -> Tuple[List[dict], datetime, bool]:
+        spec = league_spec(league)
         payload, fetched_at, cached = self.client.scoreboard(league, day.strftime("%Y%m%d"))
         if not isinstance(payload, dict) or "games" not in payload:
             raise ActionNetworkError("Unexpected scoreboard response shape (no 'games' key)")
         if not cached and self.history is not None:
             try:
-                self.history.record_scoreboard(league, payload, fetched_at)
+                self.history.record_scoreboard(spec["path"], payload, fetched_at)
             except Exception as exc:  # pragma: no cover
                 log.warning("History write failed: %s", exc)
-        return [parse_game(g, league) for g in payload.get("games") or []], fetched_at, cached
+        games = payload.get("games") or []
+        if spec.get("league_name"):
+            games = [g for g in games if (g.get("league_name") or "").lower() == spec["league_name"]]
+        return [parse_game(g, league) for g in games], fetched_at, cached
 
     def _find(self, league: str, date: Optional[str], team: Optional[str], game_id: Optional[int],
               days_ahead: Optional[int]) -> Tuple[List[dict], List[str], datetime, bool]:

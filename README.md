@@ -24,8 +24,29 @@ OddsService ┼── MCP  /mcp (HTTP) or stdio ──── Claude, Cursor, any
 Other tools: `get_games`, `get_public_betting` (ticket % vs money %), `get_line_movement`,
 `list_futures` / `get_futures`, `list_leagues`.
 
-Leagues: `nfl nba mlb ncaab soccer` (proven by the archiver) and `nhl ncaaf wnba` (same pattern, unverified).
+Leagues: `nfl nba mlb ncaab soccer` and the soccer competitions `epl laliga bundesliga seriea mls champs` (proven by the archiver), plus `nhl ncaaf wnba` (same pattern, unverified).
 Team lookup is fuzzy: `chiefs`, `KC`, `Kansas City`, `niners` all work. With no date, a team lookup searches forward 7 days for football and 2 days otherwise.
+
+## Published snapshots (for chat apps)
+
+ChatGPT, Grok and claude.ai can't call a private server, but they can open a public URL. A scheduled
+workflow (`.github/workflows/publish_odds.yaml`) runs about every 30 minutes and publishes DraftKings lines to GitHub Pages:
+
+```
+https://aaroncolesmith.github.io/action-network-mcp/odds/<league>/<YYYY-MM-DD>.json
+https://aaroncolesmith.github.io/action-network-mcp/odds/index.json
+```
+
+- Leagues: `mlb nfl ncaaf nba wnba ncaab nhl epl laliga mls bundesliga seriea champs`
+- Dates are Pacific. Today through +7 days for NFL/NCAAF, +4 for everything else.
+- Each game lists `options`: every allowed pick with its exact text (`"Kansas City Chiefs -3.5"`, `"Over 44.5"`, `"Arsenal ML"`, `"Draw"`) and American odds.
+- Only games that hadn't started when the snapshot ran are listed. `retrieved_at` says when that was.
+- A league that failed to load still gets its files, with an `error` field and no games.
+
+Run it locally with `python -m action_network.snapshot --out site`, or `--leagues NFL,EPL` for a subset.
+Change the book with `AN_SNAPSHOT_BOOK_ID`. `--show-books` prints Action Network's own book ids and names.
+
+GitHub turns off scheduled workflows in public repos after 60 days without commits; re-enable it from the Actions tab if that happens.
 
 ## Run it
 

@@ -33,6 +33,14 @@ LEAGUES: Dict[str, dict] = {
     "nhl": {"path": "nhl", "params": {}, "verified": False},
     "ncaaf": {"path": "ncaaf", "params": {"division": "FBS"}, "verified": False},
     "wnba": {"path": "wnba", "params": {}, "verified": False},
+    # Soccer competitions share the soccer scoreboard and are filtered by the game's
+    # league_name (values seen in the archived soccer data).
+    "epl": {"path": "soccer", "params": {}, "league_name": "epl", "verified": True},
+    "laliga": {"path": "soccer", "params": {}, "league_name": "laliga", "verified": True},
+    "bundesliga": {"path": "soccer", "params": {}, "league_name": "bundesliga", "verified": True},
+    "seriea": {"path": "soccer", "params": {}, "league_name": "seriea", "verified": True},
+    "mls": {"path": "soccer", "params": {}, "league_name": "mls", "verified": True},
+    "champs": {"path": "soccer", "params": {}, "league_name": "champions", "verified": True},
 }
 
 # Book ids requested on every scoreboard call (same set the archiver uses).

@@ -21,10 +21,13 @@ Typical flow: get_odds(league, team=...) for a specific game, or get_odds(league
 Prices are American odds. 'best' = best price available per side across books;
 'consensus' = median line across books with no-vig win probabilities.
 Every response includes `as_of` (UTC). Data is cached for ~45s upstream.
-Leagues: nfl, nba, mlb, nhl, ncaaf, ncaab, wnba, soccer.
+Leagues: nfl, nba, mlb, nhl, ncaaf, ncaab, wnba, soccer (all), epl, laliga, bundesliga, seriea, mls, champs.
 """
 
-League = Literal["nfl", "nba", "mlb", "nhl", "ncaaf", "ncaab", "wnba", "soccer"]
+League = Literal[
+    "nfl", "nba", "mlb", "nhl", "ncaaf", "ncaab", "wnba",
+    "soccer", "epl", "laliga", "bundesliga", "seriea", "mls", "champs",
+]
 Market = Literal["moneyline", "spread", "total"]
 
 READ_ONLY = ToolAnnotations(readOnlyHint=True, openWorldHint=True)
@@ -60,7 +63,7 @@ def get_games(league: League, date: Optional[str] = None) -> dict:
     """Schedule and live status for a league on one date.
 
     Args:
-        league: nfl, nba, mlb, nhl, ncaaf, ncaab, wnba, or soccer.
+        league: nfl, nba, mlb, nhl, ncaaf, ncaab, wnba, soccer, epl, laliga, bundesliga, seriea, mls, or champs.
         date: YYYY-MM-DD, 'today' (default), 'tomorrow', or 'yesterday'. US Eastern dates.
     """
     return get_service().get_games(league, date)
@@ -81,7 +84,7 @@ def get_odds(
     """Current odds: consensus line, no-vig win probability, and best available price per side.
 
     Args:
-        league: nfl, nba, mlb, nhl, ncaaf, ncaab, wnba, or soccer.
+        league: nfl, nba, mlb, nhl, ncaaf, ncaab, wnba, soccer, epl, laliga, bundesliga, seriea, mls, or champs.
         team: Optional team name/nickname/abbreviation ("chiefs", "KC"). Without a date,
             searches forward from today (7 days for football, 2 otherwise).
         date: YYYY-MM-DD, 'today', or 'tomorrow'. Omit with no team to get today's slate.

@@ -119,7 +119,7 @@ def _csv(value: Optional[str]) -> Optional[list]:
     return [v.strip() for v in value.split(",") if v.strip()] if value else None
 
 
-LEAGUE_Q = Query(..., description="nfl, nba, mlb, nhl, ncaaf, ncaab, wnba, soccer")
+LEAGUE_Q = Query(..., description="nfl, nba, mlb, nhl, ncaaf, ncaab, wnba, soccer, epl, laliga, bundesliga, seriea, mls, champs")
 DATE_Q = Query(None, description="YYYY-MM-DD, today, tomorrow, yesterday (US Eastern)")
 
 
