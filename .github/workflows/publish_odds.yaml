@@ -30,9 +30,36 @@ jobs:
       - name: Check sportsbook ids
         if: github.event_name == 'workflow_dispatch'
         continue-on-error: true
-        run: python -m action_network.snapshot --show-books
+        run: echo "::notice title=Books::$(python -m action_network.snapshot --show-books | tr '\n' ' ')"
       - name: Build snapshots
         run: python -m action_network.snapshot --out site
+      - name: Summarize
+        if: always()
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import json, glob
+          idx = json.load(open("site/odds/index.json"))
+          counts = "; ".join(f"{k}: " + " ".join(str(f["games"]) for f in v["files"]) for k, v in idx["leagues"].items())
+          print(f"::notice title=Games per day (from {idx['retrieved_at']})::{counts}")
+          errs = {k: v["error"] for k, v in idx["leagues"].items() if v.get("error")}
+          if errs:
+              print("::warning title=League errors::" + json.dumps(errs).replace("\n", " "))
+          for path in sorted(glob.glob("site/odds/*/*.json")):
+              if path.endswith("index.json"):
+                  continue
+              body = json.load(open(path))
+              if body["games"]:
+                  g = body["games"][0]
+                  print(f"::notice title=Sample {body['league']} {body['date']}::" + json.dumps(g)[:3000])
+                  break
+          PY
+          {
+            echo "## Odds snapshot"
+            echo '```'
+            python -c "import json;i=json.load(open('site/odds/index.json'));[print(k, [f['games'] for f in v['files']], v.get('error','')) for k,v in i['leagues'].items()]"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
