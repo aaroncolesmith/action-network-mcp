@@ -47,7 +47,7 @@ def test_build_snapshot(svc, session, tmp_path):
     _with_soccer(session)
     index = build(str(tmp_path), ["NFL", "EPL", "MLS"], svc=svc, now=NOW, base_url="https://x/")
 
-    nfl = json.loads((tmp_path / "odds/nfl/2026-10-11.json").read_text())
+    nfl = json.loads((tmp_path / "odds/NFL/2026-10-11.json").read_text())
     assert nfl["league"] == "NFL" and nfl["sportsbook"] == "DraftKings"
     assert nfl["retrieved_at"] == "2026-10-11T08:00:00-07:00"
     assert nfl["game_count"] == 1                                   # the completed game is excluded
@@ -63,21 +63,21 @@ def test_build_snapshot(svc, session, tmp_path):
     }
 
     # 04:30Z Oct 12 is 21:30 Pacific Oct 11: bucketed by Pacific date
-    epl = json.loads((tmp_path / "odds/epl/2026-10-11.json").read_text())
+    epl = json.loads((tmp_path / "odds/EPL/2026-10-11.json").read_text())
     picks = {o["pick"]: o["odds"] for o in epl["games"][0]["options"]}
     assert picks["Draw"] == 240 and picks["Arsenal -0.25"] == -105 and picks["Over 2.5"] == -130
-    mls = json.loads((tmp_path / "odds/mls/2026-10-11.json").read_text())
+    mls = json.loads((tmp_path / "odds/MLS/2026-10-11.json").read_text())
     assert [o["pick"] for o in mls["games"][0]["options"]] == ["Portland Timbers ML", "Seattle Sounders FC ML", "Draw"]
     no_dk = svc.get_games("epl", "2026-10-11")  # sanity: competition filter still applies
     assert no_dk["count"] == 1
 
     assert len(index["leagues"]["NFL"]["files"]) == 8                 # today + 7 days
     assert len(index["leagues"]["EPL"]["files"]) == snapshot.DEFAULT_HORIZON + 1
-    assert index["leagues"]["NFL"]["files"][0]["url"] == "https://x/odds/nfl/2026-10-11.json"
-    nxt = json.loads((tmp_path / "odds/nfl/2026-10-18.json").read_text())
+    assert index["leagues"]["NFL"]["files"][0]["url"] == "https://x/odds/NFL/2026-10-11.json"
+    nxt = json.loads((tmp_path / "odds/NFL/2026-10-18.json").read_text())
     assert [o["pick"] for o in nxt["games"][0]["options"]][:3] == [
         "Green Bay Packers ML", "Chicago Bears ML", "Green Bay Packers -2.0"]
-    empty = json.loads((tmp_path / "odds/nfl/2026-10-14.json").read_text())
+    empty = json.loads((tmp_path / "odds/NFL/2026-10-14.json").read_text())
     assert empty["game_count"] == 0 and "No upcoming games" in empty["message"]
     assert "Odds snapshots" in (tmp_path / "index.html").read_text()
 
@@ -86,7 +86,7 @@ def test_build_records_errors(svc, session, tmp_path, monkeypatch):
     monkeypatch.setattr("action_network.client.time.sleep", lambda s: None)
     session.fail_with = 403
     index = build(str(tmp_path), ["NBA"], svc=svc, now=NOW)
-    body = json.loads((tmp_path / "odds/nba/2026-10-11.json").read_text())
+    body = json.loads((tmp_path / "odds/NBA/2026-10-11.json").read_text())
     assert "403" in body["error"] and body["games"] == []
     assert "error" in index["leagues"]["NBA"]
 

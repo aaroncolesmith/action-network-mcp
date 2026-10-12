@@ -22,8 +22,8 @@ jobs:
       AN_SCOREBOARD_TTL: "900"       # soccer competitions share one fetch per date
       AN_SNAPSHOT_BASE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install .
@@ -38,24 +38,13 @@ jobs:
         continue-on-error: true
         run: |
           python - <<'PY'
-          import json, glob
+          import json
           idx = json.load(open("site/odds/index.json"))
           counts = "; ".join(f"{k}: " + " ".join(str(f["games"]) for f in v["files"]) for k, v in idx["leagues"].items())
           print(f"::notice title=Games per day (from {idx['retrieved_at']})::{counts}")
-          for k in ("NFL", "NBA", "NHL", "MLB", "NCAAF"):
-              v = idx["leagues"][k]
-              print(f"::notice title=Detail {k}::raw={json.dumps(v['raw_games_by_fetch_date'])} excluded={json.dumps([f['excluded'] for f in v['files']])}")
           errs = {k: v["error"] for k, v in idx["leagues"].items() if v.get("error")}
           if errs:
               print("::warning title=League errors::" + json.dumps(errs).replace("\n", " "))
-          for path in sorted(glob.glob("site/odds/*/*.json")):
-              if path.endswith("index.json"):
-                  continue
-              body = json.load(open(path))
-              if body["games"]:
-                  g = body["games"][0]
-                  print(f"::notice title=Sample {body['league']} {body['date']}::" + json.dumps(g)[:3000])
-                  break
           PY
           {
             echo "## Odds snapshot"
@@ -63,7 +52,7 @@ jobs:
             python -c "import json;i=json.load(open('site/odds/index.json'));[print(k, [f['games'] for f in v['files']], v.get('error','')) for k,v in i['leagues'].items()]"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: site
 

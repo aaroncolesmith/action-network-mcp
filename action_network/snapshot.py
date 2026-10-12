@@ -4,7 +4,7 @@
 
 Writes, for each league and each Pacific-time date in the horizon:
 
-    site/odds/<league>/<YYYY-MM-DD>.json   one sportsbook's lines, with ready-made pick strings
+    site/odds/<LEAGUE>/<YYYY-MM-DD>.json   one sportsbook's lines, with ready-made pick strings (e.g. odds/NFL/...)
     site/odds/index.json                   what was published, when, and any errors
     site/index.html                        human-readable directory
 
@@ -193,7 +193,7 @@ def build(out_dir: str, labels: Optional[List[str]] = None, svc: Optional[OddsSe
         entries = []
         for day in days:
             body = league_file(label, key, day, by_date.get(day, []), retrieved, error)
-            rel = f"odds/{label.lower()}/{day}.json"
+            rel = f"odds/{label}/{day}.json"
             write_json(os.path.join(out_dir, rel), body)
             entries.append({"date": day, "games": body["game_count"], "excluded": body["games_excluded"],
                             "url": f"{base_url}{rel}"})
@@ -230,7 +230,7 @@ th{{width:110px}} a{{color:var(--accent);margin-right:6px;white-space:nowrap}} s
 </style></head><body>
 <h1>Odds snapshots</h1>
 <p>{escape(index["sportsbook"])} lines, retrieved {escape(index["retrieved_at"])} (Pacific). Refreshes {escape(REFRESH_NOTE)}.
-Files: <code>odds/&lt;league&gt;/&lt;YYYY-MM-DD&gt;.json</code> · <a href="odds/index.json">index.json</a></p>
+Files: <code>odds/&lt;LEAGUE&gt;/&lt;YYYY-MM-DD&gt;.json</code> · <a href="odds/index.json">index.json</a></p>
 <table>{''.join(rows)}</table>
 </body></html>
 """

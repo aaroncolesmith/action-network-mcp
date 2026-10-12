@@ -33,12 +33,14 @@ ChatGPT, Grok and claude.ai can't call a private server, but they can open a pub
 workflow (`.github/workflows/publish_odds.yaml`) runs about every 30 minutes and publishes DraftKings lines to GitHub Pages:
 
 ```
-https://aaroncolesmith.github.io/action-network-mcp/odds/<league>/<YYYY-MM-DD>.json
+https://aaroncolesmith.github.io/action-network-mcp/odds/<LEAGUE>/<YYYY-MM-DD>.json
 https://aaroncolesmith.github.io/action-network-mcp/odds/index.json
 ```
 
-- Leagues: `mlb nfl ncaaf nba wnba ncaab nhl epl laliga mls bundesliga seriea champs`
+- Leagues (uppercase in the path): `MLB NFL NCAAF NBA WNBA NCAAB NHL EPL LALIGA MLS BUNDESLIGA SERIEA CHAMPS`
 - Dates are Pacific. Today through +7 days for NFL/NCAAF, +4 for everything else.
+- NFL/NCAAF lines are posted for the current and next week. For daily leagues (MLB, NBA, NHL, …) the feed only carries
+  sportsbook lines on game day, so future dates show the games as excluded with a `message` until then.
 - Each game lists `options`: every allowed pick with its exact text (`"Kansas City Chiefs -3.5"`, `"Over 44.5"`, `"Arsenal ML"`, `"Draw"`) and American odds.
 - Only games that hadn't started when the snapshot ran are listed. `retrieved_at` says when that was.
 - A league that failed to load still gets its files, with an `error` field and no games.
