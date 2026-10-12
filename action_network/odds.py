@@ -235,6 +235,7 @@ def parse_game(game: dict, league: str) -> dict:
         "league": league,
         "status": game.get("status"),
         "start_time": game.get("start_time"),
+        "week": game.get("week"),
         "away": _team(teams.get(away_id), away_id),
         "home": _team(teams.get(home_id), home_id),
         "score": score,

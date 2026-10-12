@@ -30,6 +30,17 @@ class FakeSession:
         self.headers = {}
         self.calls = []
         self.scoreboard = json.loads((FIXTURES / "scoreboard_nfl.json").read_text())
+        for g in self.scoreboard["games"]:
+            g["week"] = 6
+        self.next_week = {"games": [{
+            "id": 257001, "status": "scheduled", "start_time": "2026-10-18T17:00:00.000Z", "week": 7,
+            "away_team_id": 300, "home_team_id": 301,
+            "teams": [{"id": 300, "full_name": "Green Bay Packers", "abbr": "GB"},
+                      {"id": 301, "full_name": "Chicago Bears", "abbr": "CHI"}],
+            "odds": [{"book_id": 68, "type": "game", "ml_away": -125, "ml_home": 105,
+                      "spread_away": -2.0, "spread_home": 2.0, "spread_away_line": -110, "spread_home_line": -110,
+                      "total": 41.5, "over": -110, "under": -110}],
+        }]}
         self.futures = json.loads((FIXTURES / "futures_mvp.json").read_text())
         self.fail_with = None
 
@@ -37,8 +48,13 @@ class FakeSession:
         self.calls.append(url)
         if self.fail_with:
             return FakeResponse({}, self.fail_with)
-        if "/scoreboard/nfl" in url:
-            return FakeResponse(self.scoreboard if "date=20261011" in url else {"games": []})
+        if "/scoreboard/nfl" in url:  # weekly: no date param, paged by week
+            assert "date=" not in url
+            if "week=7" in url:
+                return FakeResponse(self.next_week)
+            if "week=" in url:
+                return FakeResponse({"games": []})
+            return FakeResponse(self.scoreboard)
         if "/scoreboard/" in url:
             return FakeResponse({"games": []})
         if "/leagues/1/futures/available" in url:

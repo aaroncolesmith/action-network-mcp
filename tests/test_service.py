@@ -37,6 +37,10 @@ def test_nicknames_abbr_and_misses(svc):
     assert svc.get_odds("nfl", team="niners")["games"][0]["game_id"] == 256914
     with pytest.raises(NotFoundError):
         svc.get_odds("nfl", team="packers", days_ahead=1)
+    # no date: searches forward into next week's games
+    nxt = svc.get_odds("nfl", team="packers")["games"][0]
+    assert nxt["game_id"] == 257001 and nxt["consensus"]["spread"]["away"]["point"] == -2.0
+    assert svc.get_games("nfl", "2026-10-18")["count"] == 1
 
 
 def test_filters_markets_books_and_ignores_non_game_rows(svc):
@@ -98,7 +102,7 @@ def test_errors(svc, session, monkeypatch):
     session.fail_with = 503
     svc.client.cache.clear()
     with pytest.raises(ActionNetworkError) as exc:
-        svc.get_games("nfl", "2026-10-12")
+        svc.get_games("nba", "2026-10-12")
     assert exc.value.status_code == 503
     assert len([c for c in session.calls if "20261012" in c]) == 2  # 1 try + 1 retry
 

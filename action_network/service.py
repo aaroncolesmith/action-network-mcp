@@ -52,6 +52,11 @@ def parse_date(value: Optional[str]) -> date_cls:
     raise ValueError(f"Unrecognized date '{value}'. Use YYYY-MM-DD, 'today', or 'tomorrow'.")
 
 
+def site_date(iso: str) -> date_cls:
+    """UTC start_time -> the US Eastern calendar date the site files it under."""
+    return datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone(ZoneInfo(config.SITE_TIMEZONE)).date()
+
+
 def _iso(dt: datetime) -> str:
     return dt.astimezone(timezone.utc).isoformat(timespec="seconds")
 
@@ -69,8 +74,15 @@ class OddsService:
 
     # ---------------------------------------------------------- internals
     def _scoreboard_games(self, league: str, day: date_cls) -> Tuple[List[dict], datetime, bool]:
+        """Games on one site (US Eastern) date."""
         spec = league_spec(league)
+        if spec.get("weekly"):
+            return self._weekly_games(league, day)
         payload, fetched_at, cached = self.client.scoreboard(league, day.strftime("%Y%m%d"))
+        return self._parse_payload(league, payload, fetched_at, cached), fetched_at, cached
+
+    def _parse_payload(self, league: str, payload: Any, fetched_at: datetime, cached: bool) -> List[dict]:
+        spec = league_spec(league)
         if not isinstance(payload, dict) or "games" not in payload:
             raise ActionNetworkError("Unexpected scoreboard response shape (no 'games' key)")
         if not cached and self.history is not None:
@@ -81,7 +93,31 @@ class OddsService:
         games = payload.get("games") or []
         if spec.get("league_name"):
             games = [g for g in games if (g.get("league_name") or "").lower() == spec["league_name"]]
-        return [parse_game(g, league) for g in games], fetched_at, cached
+        return [parse_game(g, league) for g in games]
+
+    def _weekly_games(self, league: str, day: date_cls, max_extra_weeks: int = 2) -> Tuple[List[dict], datetime, bool]:
+        """Football: start from the current week and page forward until `day` is covered."""
+        payload, oldest, all_cached = self.client.scoreboard(league)
+        games = self._parse_payload(league, payload, oldest, all_cached)
+        weeks = [g["week"] for g in games if isinstance(g.get("week"), int)]
+        week = max(weeks) if weeks else None
+        for _ in range(max_extra_weeks):
+            last = max((site_date(g["start_time"]) for g in games if g["start_time"]), default=None)
+            if week is None or last is None or day <= last:
+                break
+            week += 1
+            payload, fetched_at, cached = self.client.scoreboard(league, week=week)
+            more = self._parse_payload(league, payload, fetched_at, cached)
+            if not more:
+                break
+            games += more
+            oldest, all_cached = min(oldest, fetched_at), all_cached and cached
+        seen, out = set(), []
+        for g in games:
+            if g["game_id"] not in seen and g["start_time"] and site_date(g["start_time"]) == day:
+                seen.add(g["game_id"])
+                out.append(g)
+        return out, oldest, all_cached
 
     def _find(self, league: str, date: Optional[str], team: Optional[str], game_id: Optional[int],
               days_ahead: Optional[int]) -> Tuple[List[dict], List[str], datetime, bool]:

@@ -155,6 +155,12 @@ def league_file(label: str, key: str, day: str, games: List[dict], retrieved: da
     }
     if error:
         body["error"] = error
+    elif not published:
+        if skipped_no_book:
+            body["message"] = (f"{skipped_no_book} game(s) are scheduled but {BOOK_LABEL} lines are not in the feed yet. "
+                               "For daily leagues they usually appear on game day. No picks can be made from this file yet.")
+        else:
+            body["message"] = "No upcoming games with lines on this date."
     return body
 
 

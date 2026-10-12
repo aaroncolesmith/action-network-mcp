@@ -25,13 +25,14 @@ HEADERS = {
 # League slug -> scoreboard path + extra query params.
 # "verified" = already used successfully by scripts/action_network.py.
 LEAGUES: Dict[str, dict] = {
-    "nfl": {"path": "nfl", "params": {}, "verified": True},
+    # Football scoreboards ignore `date` and are paged by `week` instead.
+    "nfl": {"path": "nfl", "params": {}, "weekly": True, "verified": True},
     "nba": {"path": "nba", "params": {}, "verified": True},
     "mlb": {"path": "mlb", "params": {}, "verified": True},
     "ncaab": {"path": "ncaab", "params": {"division": "D1", "tournament": "0"}, "verified": True},
     "soccer": {"path": "soccer", "params": {}, "verified": True},
-    "nhl": {"path": "nhl", "params": {}, "verified": False},
-    "ncaaf": {"path": "ncaaf", "params": {"division": "FBS"}, "verified": False},
+    "nhl": {"path": "nhl", "params": {}, "verified": True},
+    "ncaaf": {"path": "ncaaf", "params": {"division": "FBS"}, "weekly": True, "verified": True},
     "wnba": {"path": "wnba", "params": {}, "verified": False},
     # Soccer competitions share the soccer scoreboard and are filtered by the game's
     # league_name (values seen in the archived soccer data).

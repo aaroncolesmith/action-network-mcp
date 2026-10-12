@@ -137,15 +137,24 @@ class ActionNetworkClient:
 
     # ------------------------------------------------------------ endpoints
     def scoreboard(
-        self, league: str, date: str, book_ids: Optional[Iterable[int]] = None, ttl: Optional[float] = None
+        self,
+        league: str,
+        date: Optional[str] = None,
+        book_ids: Optional[Iterable[int]] = None,
+        ttl: Optional[float] = None,
+        week: Optional[int] = None,
     ) -> Tuple[dict, datetime, bool]:
-        """Raw scoreboard for one league on one date (YYYYMMDD)."""
+        """Raw scoreboard. Daily leagues take `date` (YYYYMMDD); weekly leagues (football)
+        ignore date and return the current week unless `week` is given."""
         spec = league_spec(league)
         params = {
             "period": "game",
             "bookIds": ",".join(str(b) for b in (book_ids or config.DEFAULT_BOOK_IDS)),
-            "date": date,
         }
+        if week is not None:
+            params["week"] = str(week)
+        elif date is not None and not spec.get("weekly"):
+            params["date"] = date
         params.update(spec["params"])
         return self.get_json(
             f"scoreboard/{spec['path']}",

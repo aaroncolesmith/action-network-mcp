@@ -68,11 +68,17 @@ def test_build_snapshot(svc, session, tmp_path):
     assert picks["Draw"] == 240 and picks["Arsenal -0.25"] == -105 and picks["Over 2.5"] == -130
     mls = json.loads((tmp_path / "odds/mls/2026-10-11.json").read_text())
     assert [o["pick"] for o in mls["games"][0]["options"]] == ["Portland Timbers ML", "Seattle Sounders FC ML", "Draw"]
+    no_dk = svc.get_games("epl", "2026-10-11")  # sanity: competition filter still applies
+    assert no_dk["count"] == 1
 
     assert len(index["leagues"]["NFL"]["files"]) == 8                 # today + 7 days
     assert len(index["leagues"]["EPL"]["files"]) == snapshot.DEFAULT_HORIZON + 1
     assert index["leagues"]["NFL"]["files"][0]["url"] == "https://x/odds/nfl/2026-10-11.json"
-    assert (tmp_path / "odds/nfl/2026-10-18.json").exists()
+    nxt = json.loads((tmp_path / "odds/nfl/2026-10-18.json").read_text())
+    assert [o["pick"] for o in nxt["games"][0]["options"]][:3] == [
+        "Green Bay Packers ML", "Chicago Bears ML", "Green Bay Packers -2.0"]
+    empty = json.loads((tmp_path / "odds/nfl/2026-10-14.json").read_text())
+    assert empty["game_count"] == 0 and "No upcoming games" in empty["message"]
     assert "Odds snapshots" in (tmp_path / "index.html").read_text()
 
 
