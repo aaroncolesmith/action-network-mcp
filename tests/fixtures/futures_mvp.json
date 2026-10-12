@@ -1,0 +1,18 @@
+{
+  "name": "2026-27 NFL MVP",
+  "teams": [{"id": 140, "full_name": "Kansas City Chiefs"}, {"id": 200, "full_name": "Buffalo Bills"}],
+  "players": [{"id": 1, "full_name": "Patrick Mahomes"}, {"id": 2, "full_name": "Josh Allen"}],
+  "books": [
+    {"book_id": 68, "odds": [
+      {"player_id": "1", "team_id": 140, "money": 450, "value": null, "option_type_id": 1},
+      {"player_id": "2", "team_id": 200, "money": 500, "value": null, "option_type_id": 1}
+    ]},
+    {"book_id": 69, "odds": [
+      {"player_id": "1", "team_id": 140, "money": 500, "value": null, "option_type_id": 1},
+      {"player_id": "2", "team_id": 200, "money": 475, "value": null, "option_type_id": 1}
+    ]},
+    {"book_id": 15, "odds": [
+      {"player_id": "1", "team_id": 140, "money": 9999, "value": null, "option_type_id": 1}
+    ]}
+  ]
+}

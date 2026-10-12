@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+.venv/
+venv/
+data/odds_history.sqlite*
