@@ -42,6 +42,12 @@ def summarize(path: str, client: ActionNetworkClient) -> dict:
         "week": {k: sample.get(k) for k in ("week", "season", "season_type", "type") if k in sample},
         "book_rows": dict(books.most_common(25)),
         "games_with_odds": sum(1 for g in games if g.get("odds")),
+        "sample_rows": [
+            {k: o.get(k) for k in ("book_id", "type", "ml_away", "ml_home", "spread_away", "spread_away_line",
+                                   "total", "over", "inserted") if k in o}
+            for o in (sample.get("odds") or [])
+        ][:12],
+        "sample_status": {k: sample.get(k) for k in ("status", "real_status", "start_time")},
     }
 
 
